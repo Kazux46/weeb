@@ -81,6 +81,82 @@
             width: 100%;
         }
 
+        /* Music Controls */
+        .music-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .music-btn {
+            background: transparent;
+            border: 2px solid #00ff41;
+            color: #00ff41;
+            padding: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .music-btn:hover {
+            background: #00ff41;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+        }
+
+        .music-btn.playing {
+            background: #00ff41;
+            color: #000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 65, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(0, 255, 65, 0.5); }
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+        }
+
+        .volume-slider {
+            width: 80px;
+            height: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #00ff41;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+
+        .volume-slider::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #00ff41;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+
         /* Main Content */
         main {
             margin-top: 80px;
@@ -348,6 +424,10 @@
                 gap: 1rem;
             }
 
+            .music-controls {
+                margin-top: 1rem;
+            }
+
             .hero h1 {
                 font-size: 2rem;
             }
@@ -361,6 +441,13 @@
 <body>
     <div class="matrix-bg"></div>
     
+    <!-- Background Music -->
+    <audio id="backgroundMusic" loop>
+        <!-- Add your music URL here -->
+        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+    
     <header>
         <nav class="container">
             <div class="logo">KazuDev</div>
@@ -371,6 +458,12 @@
                 <li><a href="#projects">Projects</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
+            <div class="music-controls">
+                <button id="musicToggle" class="music-btn">🎵</button>
+                <div class="volume-control">
+                    <input type="range" id="volumeSlider" min="0" max="100" value="50" class="volume-slider">
+                </div>
+            </div>
         </nav>
     </header>
 
@@ -588,6 +681,63 @@
 
         // Initialize matrix effect
         createMatrixRain();
+
+        // Music functionality
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const volumeSlider = document.getElementById('volumeSlider');
+        let isPlaying = false;
+
+        // Music URL - Change this to your music file URL
+        const MUSIC_URL = 'https://cdn.discordapp.com/attachments/1371110062222872638/1391890756742025266/SpotiDownloader.com-i-walk-this-earth-all-by-myself-EKKSTACY.wav?ex=686d8ac8&is=686c3948&hm=ae626d8f1f9cbce5d8c59606dce4ce7e3d87c0f4dfaddf5a15964d2ba8dacbb9&';
+        
+        // Set the music source
+        backgroundMusic.src = MUSIC_URL;
+
+        // Set initial volume
+        backgroundMusic.volume = 0.5;
+
+        // Music toggle functionality
+        musicToggle.addEventListener('click', function() {
+            if (isPlaying) {
+                backgroundMusic.pause();
+                musicToggle.textContent = '🎵';
+                musicToggle.classList.remove('playing');
+                isPlaying = false;
+            } else {
+                backgroundMusic.play().catch(e => {
+                    console.log('Audio play failed:', e);
+                    alert('Please interact with the page first to enable audio');
+                });
+                musicToggle.textContent = '🔊';
+                musicToggle.classList.add('playing');
+                isPlaying = true;
+            }
+        });
+
+        // Volume control
+        volumeSlider.addEventListener('input', function() {
+            backgroundMusic.volume = this.value / 100;
+        });
+
+        // Auto-play attempt (many browsers block this)
+        document.addEventListener('click', function() {
+            if (!isPlaying && backgroundMusic.paused) {
+                // This is just a fallback - user still needs to click the music button
+            }
+        }, { once: true });
+
+        // Handle music events
+        backgroundMusic.addEventListener('ended', function() {
+            // Loop is handled by the loop attribute, but this is a fallback
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play();
+        });
+
+        backgroundMusic.addEventListener('error', function(e) {
+            console.log('Audio error:', e);
+            musicToggle.style.display = 'none'; // Hide button if audio fails to load
+        });
 
         // Form submission
         document.querySelector('form').addEventListener('submit', function(e) {
